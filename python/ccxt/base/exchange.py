@@ -604,7 +604,7 @@ class Exchange(object):
         url = self.proxy + url
 
         if self.verbose:
-            self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
+            self.log(self.get_now(), "fetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body, "\n")
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -642,7 +642,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
+                self.log(self.get_now(), "fetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response, "\n")
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
@@ -1100,6 +1100,10 @@ class Exchange(object):
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
+
+    @staticmethod
+    def get_now(self):
+        return datetime.now().isoformat()
 
     @staticmethod
     def rfc2616(self, timestamp=None):
