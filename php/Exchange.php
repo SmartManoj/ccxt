@@ -930,6 +930,10 @@ class Exchange {
         return $time;
     }
 
+    public static function $this->get_now() {
+        return gmdate('D, d M Y H:i:s T');
+    }
+
     public static function rfc2616($timestamp) {
         if (!$timestamp) {
             $timestamp = static::milliseconds();
@@ -1688,7 +1692,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $verbose_headers, 'RequestBody:', $body));
+            print_r(array($this->get_now(), 'fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $verbose_headers, 'RequestBody:', $body));
         }
 
         // we probably only need to set it once on startup
@@ -1774,7 +1778,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r(array('fetch Response:', $this->id, $method, $url, $http_status_code, $curl_error, 'ResponseHeaders:', $response_headers, 'ResponseBody:', $result));
+            print_r(array($this->get_now(), 'fetch Response:', $this->id, $method, $url, $http_status_code, $curl_error, 'ResponseHeaders:', $response_headers, 'ResponseBody:', $result));
         }
 
         if ($result === false) {
