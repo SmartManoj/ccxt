@@ -1,0 +1,67 @@
+name: Converted Workflow
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  Build:
+    runs-on: '${{ matrix.os }}'
+    strategy:
+      matrix:
+        os:
+          - ubuntu-18.04
+        python-version:
+          - '3.8'
+    steps:
+      - name: 'Set up Python ${{ matrix.python-version }}'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache multiple paths
+        uses: actions/cache@v2
+        with:
+          path: .cache
+          key: '${{ runner.os }}-${{ hashFiles(''TODO'') }}'
+      - uses: actions/checkout@v2
+      - run: set -e
+      - run: . $HOME/.nvm/nvm.sh
+      - run: nvm ls
+      - run: nvm ls-remote
+      - run: nvm install v16.13.2
+      - run: rm -rf node_modules
+      - run: npm install
+      - run: git checkout package.json package-lock.json
+      - run: git config pull.rebase false
+      - run: git fetch --depth=50 --tags --verbose --progress
+      - run: sudo -H pip install --upgrade setuptools
+      - run: sudo -H pip install --upgrade pip wheel requests pyopenssl
+      - run: sudo -H pip install --ignore-installed six
+      - run: sudo -H pip install --upgrade tox twine
+      - run: pip install --upgrade setuptools
+      - run: pip install --upgrade aiohttp requests cryptography pyopenssl
+      - run: composer install
+      - run: >-
+          composer require --ignore-platform-reqs react/http:"^1.4.0"
+          recoil/react:"1.0.2"
+      - run: >-
+          if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" =
+          "master" ]; then npm config set git-tag-version=false &&
+          NPM_VERSION=$(npm version patch); fi
+      - run: npm run force-build
+      - run: cd python
+      - run: tox -e doc
+      - run: cd ..
+      - run: npm run test-base
+      - run: bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
+      - run: git checkout master composer.json
+      - run: >-
+          if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" =
+          "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1}
+          GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
+      - run: >-
+          if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" =
+          "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD}
+          ./deploy.sh && cd ..; fi
